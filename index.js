@@ -2,7 +2,6 @@
 
 var rp = require('request-promise');
 var objectAssign = require('object-assign');
-var fs = require('fs');
 
 var cacheManager = require('cache-manager');
 

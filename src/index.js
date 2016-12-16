@@ -2,7 +2,6 @@
 
 var rp = require('request-promise');
 var objectAssign = require('object-assign');
-var fs = require('fs');
 
 var cacheManager = require('cache-manager');
 
@@ -94,10 +93,28 @@ workwechat.prototype = {
         secretKey = secretKey || this.options.AESKey;
         mode = mode || 'aes-128-cbc';
         iv = iv || this.options.iv;
-        var encipher = crypto.createCipheriv(mode, secretKey, iv),
-        encoded  = encipher.update(data, 'utf8', 'hex');
-        encoded += encipher.final('hex');
-        return encoded;
+        secretKey = new Buffer(secretKey, "utf8");
+        secretKey = crypto.createHash("md5").update(secretKey).digest("hex");
+        secretKey = new Buffer(secretKey, "hex");
+        var cipher = crypto.createCipheriv(mode, secretKey, iv);
+        var coder = [];
+        coder.push(cipher.update(data, "utf8", "hex"));
+        coder.push(cipher.final("hex"));
+        return coder.join("");
+    },
+
+    aesDecrypt: function(data, secretKey, iv, mode) {
+        secretKey = secretKey || this.options.AESKey;
+        mode = mode || 'aes-128-cbc';
+        iv = iv || this.options.iv;
+        secretKey = Buffer(secretKey, "utf8");
+        secretKey = crypto.createHash("md5").update(secretKey).digest("hex");
+        secretKey = new Buffer(secretKey, "hex");
+        var cipher = crypto.createDecipheriv(mode, secretKey, iv);
+        var coder = [];
+        coder.push(cipher.update(data, "hex", "utf8"));
+        coder.push(cipher.final("utf8"));
+        return coder.join("");
     },
 
     handleError: function(errcode, onlymsg){
